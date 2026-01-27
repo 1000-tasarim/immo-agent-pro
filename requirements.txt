@@ -1,7 +1,5 @@
 fastapi
 uvicorn
 pydantic
-crewai
 langchain-google-genai
-langchain-community
 python-multipart
