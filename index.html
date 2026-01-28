@@ -17,8 +17,8 @@
                 <h1 class="text-3xl font-bold tracking-tight text-orange-500">Immo-Agent Pro</h1>
                 <p class="text-gray-400">Yapay Zeka Destekli Emlak Analiz Paneli</p>
             </div>
-            <div class="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm border border-green-500/30">
-                Sistem Aktif
+            <div id="statusIndicator" class="px-4 py-2 bg-gray-500/20 text-gray-400 rounded-full text-sm border border-gray-500/30">
+                Kontrol Ediliyor...
             </div>
         </div>
 
@@ -29,7 +29,7 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">İlan Türü</label>
-                        <select id="listing_type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <select id="listing_type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-white">
                             <option value="Kiralık">Kiralık</option>
                             <option value="Satılık">Satılık</option>
                         </select>
@@ -37,10 +37,10 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-400 mb-2">Mülk Açıklaması</label>
-                        <textarea id="description" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Örn: Berlin'de 3 odalı, balkonlu, metroya yakın daire..."></textarea>
+                        <textarea id="description" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 text-white placeholder-gray-500" placeholder="Örn: Berlin'de 3 odalı, balkonlu, metroya yakın daire..."></textarea>
                     </div>
 
-                    <button onclick="generateAIContent()" id="submitBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/20">
+                    <button onclick="generateAIContent()" id="submitBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
                         AI İlan Oluştur
                     </button>
                 </div>
@@ -48,43 +48,93 @@
 
             <div class="glass p-8 rounded-3xl shadow-2xl flex flex-col">
                 <h2 class="text-xl font-semibold mb-6 text-gray-300">AI Analiz Sonucu</h2>
-                <div id="resultContent" class="flex-grow text-gray-400 leading-relaxed italic overflow-y-auto max-h-[400px]">
-                    Lütfen soldaki formu doldurup butona basın. Yapay zeka ajanlarımız sizin için en iyi ilanı hazırlayacak.
+                <div id="resultContent" class="flex-grow text-gray-400 leading-relaxed italic overflow-y-auto max-h-[400px] whitespace-pre-wrap">
+Lütfen soldaki formu doldurup butona basın. Yapay zeka ajanlarımız sizin için en iyi ilanı hazırlayacak.
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Sayfa yüklendiğinde API durumunu kontrol et
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                const indicator = document.getElementById('statusIndicator');
+                
+                if (data.status === 'ok') {
+                    indicator.className = 'px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm border border-green-500/30';
+                    indicator.innerText = 'Sistem Aktif';
+                } else {
+                    throw new Error('API yanıt vermiyor');
+                }
+            } catch (error) {
+                const indicator = document.getElementById('statusIndicator');
+                indicator.className = 'px-4 py-2 bg-red-500/20 text-red-400 rounded-full text-sm border border-red-500/30';
+                indicator.innerText = 'Bağlantı Hatası';
+            }
+        });
+
         async function generateAIContent() {
             const btn = document.getElementById('submitBtn');
             const result = document.getElementById('resultContent');
-            const description = document.getElementById('description').value;
+            const description = document.getElementById('description').value.trim();
             const listing_type = document.getElementById('listing_type').value;
 
-            if(!description) { alert("Lütfen açıklama girin!"); return; }
+            // Validasyon
+            if (!description) {
+                alert("Lütfen mülk açıklaması girin!");
+                return;
+            }
 
+            if (description.length < 10) {
+                alert("Açıklama en az 10 karakter olmalıdır!");
+                return;
+            }
+
+            // UI güncellemeleri
             btn.disabled = true;
-            btn.innerText = "Ajanlar Çalışıyor...";
-            result.innerText = "Yapay zeka verileri analiz ediyor, Almanca profesyonel metin hazırlanıyor...";
+            btn.innerText = "⏳ Ajanlar Çalışıyor...";
+            result.innerText = "🤖 Yapay zeka verileri analiz ediyor...\n📝 Almanca profesyonel metin hazırlanıyor...";
+            result.classList.remove('text-white');
+            result.classList.add('italic', 'text-gray-400');
 
             try {
                 const response = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ description, listing_type })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        description: description, 
+                        listing_type: listing_type 
+                    })
                 });
-                
+
+                // HTTP hata kontrolü
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
-                if(data.status === "success") {
-                    result.innerText = data.text;
-                    result.classList.remove('italic');
+                
+                // Başarılı yanıt kontrolü
+                if (data.status === "success" && data.data && data.data.generated_text) {
+                    result.innerText = data.data.generated_text;
+                    result.classList.remove('italic', 'text-gray-400');
                     result.classList.add('text-white');
                 } else {
-                    result.innerText = "Bir hata oluştu: " + data.detail;
+                    throw new Error("API beklenmedik yanıt döndürdü: " + JSON.stringify(data));
                 }
+
             } catch (error) {
-                result.innerText = "Bağlantı hatası! Lütfen API anahtarlarınızı kontrol edin.";
+                console.error("Hata detayı:", error);
+                result.innerText = "❌ Hata Oluştu!\n\n" + error.message + "\n\nLütfen:\n• API anahtarlarınızı kontrol edin\n• İnternet bağlantınızı kontrol edin\n• Vercel Environment Variables bölümünde GOOGLE_API_KEY olduğundan emin olun";
+                result.classList.remove('italic');
+                result.classList.add('text-red-400');
             } finally {
                 btn.disabled = false;
                 btn.innerText = "AI İlan Oluştur";
