@@ -1,134 +1,95 @@
-// Next.js & React Component
-import React, { useState } from 'react';
-import { Sparkles, Image as ImageIcon, FileText, Mic, Home, DollarSign, Key } from 'lucide-react';
-
-export default function Dashboard() {
-  const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<'rent' | 'sale'>('rent'); // Kiralık/Satılık Modu
-  const [inputText, setInputText] = useState('');
-  const [result, setResult] = useState<any>(null);
-
-  // API'ye İstek Atma
-  const handleGenerate = async () => {
-    setLoading(true);
-    
-    // Simüle edilen Backend isteği
-    // Gerçekte: await fetch('http://localhost:8000/generate', ...)
-    setTimeout(() => {
-      setResult({
-        text: "✨ Wohnen im Herzen von Stuttgart! \n\nBu harika daire yeni sahiplerini bekliyor...",
-        image: "https://images.unsplash.com/photo-1502005229762-cf1afd386884?auto=format&fit=crop&w=800&q=80"
-      });
-      setLoading(false);
-    }, 3000);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
-      
-      {/* --- SOL TARAFTA GİRİŞ ALANI --- */}
-      <div className="flex-1 p-8 max-w-2xl mx-auto">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-[#0F172A]">Immo-Agent Pro</h1>
-          <p className="text-slate-500">Exposé'yi yükle, viral ol.</p>
-        </header>
-
-        {/* Kart */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-          
-          {/* MOD SEÇİMİ (TOGGLE) */}
-          <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
-            <button 
-              onClick={() => setMode('rent')}
-              className={`flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${mode === 'rent' ? 'bg-white shadow text-indigo-600' : 'text-slate-500'}`}
-            >
-              <Key size={18} /> Kiralama (Mieten)
-            </button>
-            <button 
-              onClick={() => setMode('sale')}
-              className={`flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${mode === 'sale' ? 'bg-white shadow text-emerald-600' : 'text-slate-500'}`}
-            >
-              <DollarSign size={18} /> Satış (Kauf)
-            </button>
-          </div>
-
-          {/* GİRİŞ TİPLERİ */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="border border-slate-200 p-4 rounded-xl text-center hover:bg-slate-50 cursor-pointer">
-               <FileText className="mx-auto mb-2 text-slate-400"/>
-               <span className="text-xs font-bold text-slate-600">PDF Exposé</span>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immo-Agent Pro | AI Emlak Asistanı</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white font-sans">
+    <div class="max-w-4xl mx-auto py-12 px-4">
+        <div class="flex items-center justify-between mb-12">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-orange-500">Immo-Agent Pro</h1>
+                <p class="text-gray-400">Yapay Zeka Destekli Emlak Analiz Paneli</p>
             </div>
-            <div className="border border-slate-200 p-4 rounded-xl text-center hover:bg-slate-50 cursor-pointer">
-               <ImageIcon className="mx-auto mb-2 text-slate-400"/>
-               <span className="text-xs font-bold text-slate-600">Fotoğraf</span>
+            <div class="px-4 py-2 bg-green-500/20 text-green-400 rounded-full text-sm border border-green-500/30">
+                Sistem Aktif
             </div>
-            <div className="border border-slate-200 p-4 rounded-xl text-center hover:bg-slate-50 cursor-pointer">
-               <Mic className="mx-auto mb-2 text-slate-400"/>
-               <span className="text-xs font-bold text-slate-600">Ses Kaydı</span>
-            </div>
-          </div>
-
-          <textarea 
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm min-h-[150px] focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder={mode === 'rent' ? "Örn: Stuttgart-West, 3 oda, 1200€, öğrenciye uygun değil..." : "Örn: Berlin-Mitte, Yatırımlık bina, ROI %4, tadilatlı..."}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-          ></textarea>
-
-          {/* SİHİRLİ BUTON */}
-          <button 
-            onClick={handleGenerate}
-            disabled={loading}
-            className="mt-6 w-full relative overflow-hidden rounded-xl p-4 font-bold text-white transition hover:scale-[1.01]"
-            style={{background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'}}
-          >
-            {loading ? "Ajan Çalışıyor..." : "✨ İçerik Oluştur"}
-          </button>
         </div>
-      </div>
 
-      {/* --- SAĞ TARAFTA IPHONE ÖN İZLEME --- */}
-      <div className="hidden lg:flex w-1/3 bg-slate-100 items-center justify-center border-l border-slate-200">
-        <div className="w-[300px] bg-black rounded-[40px] p-3 shadow-2xl border-4 border-slate-800">
-          <div className="bg-white w-full h-[600px] rounded-[30px] overflow-hidden flex flex-col relative">
-            
-            {/* Instagram Üst Bar */}
-            <div className="h-14 border-b flex items-center justify-center font-bold text-sm">
-               Immo_Agent_Pro
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glass p-8 rounded-3xl shadow-2xl">
+                <h2 class="text-xl font-semibold mb-6">İlan Detaylarını Girin</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">İlan Türü</label>
+                        <select id="listing_type" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <option value="Kiralık">Kiralık</option>
+                            <option value="Satılık">Satılık</option>
+                        </select>
+                    </div>
 
-            {/* İçerik */}
-            <div className="flex-1 overflow-y-auto">
-              {result ? (
-                <>
-                  {/* Görsel */}
-                  <img src={result.image} className="w-full h-[300px] object-cover" />
-                  
-                  {/* Etkileşim İkonları */}
-                  <div className="flex gap-4 p-3 text-2xl">
-                    <span>❤️</span> <span>💬</span> <span>✈️</span>
-                  </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-2">Mülk Açıklaması</label>
+                        <textarea id="description" rows="5" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Örn: Berlin'de 3 odalı, balkonlu, metroya yakın daire..."></textarea>
+                    </div>
 
-                  {/* Metin */}
-                  <div className="px-3 pb-10 text-sm text-slate-800 whitespace-pre-line">
-                    <span className="font-bold mr-2">Immo_Agent_Pro</span>
-                    {result.text}
-                    <br/><br/>
-                    <span className="text-blue-500">#Stuttgart #Immobilien #RealEstate</span>
-                  </div>
-                </>
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 p-10 text-center">
-                  <Sparkles size={40} className="mb-4 text-slate-200"/>
-                  <p>Ön izleme burada görünecek.</p>
+                    <button onclick="generateAIContent()" id="submitBtn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-orange-500/20">
+                        AI İlan Oluştur
+                    </button>
                 </div>
-              )}
             </div>
 
-          </div>
+            <div class="glass p-8 rounded-3xl shadow-2xl flex flex-col">
+                <h2 class="text-xl font-semibold mb-6 text-gray-300">AI Analiz Sonucu</h2>
+                <div id="resultContent" class="flex-grow text-gray-400 leading-relaxed italic overflow-y-auto max-h-[400px]">
+                    Lütfen soldaki formu doldurup butona basın. Yapay zeka ajanlarımız sizin için en iyi ilanı hazırlayacak.
+                </div>
+            </div>
         </div>
-      </div>
-
     </div>
-  );
-}
+
+    <script>
+        async function generateAIContent() {
+            const btn = document.getElementById('submitBtn');
+            const result = document.getElementById('resultContent');
+            const description = document.getElementById('description').value;
+            const listing_type = document.getElementById('listing_type').value;
+
+            if(!description) { alert("Lütfen açıklama girin!"); return; }
+
+            btn.disabled = true;
+            btn.innerText = "Ajanlar Çalışıyor...";
+            result.innerText = "Yapay zeka verileri analiz ediyor, Almanca profesyonel metin hazırlanıyor...";
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description, listing_type })
+                });
+                
+                const data = await response.json();
+                if(data.status === "success") {
+                    result.innerText = data.text;
+                    result.classList.remove('italic');
+                    result.classList.add('text-white');
+                } else {
+                    result.innerText = "Bir hata oluştu: " + data.detail;
+                }
+            } catch (error) {
+                result.innerText = "Bağlantı hatası! Lütfen API anahtarlarınızı kontrol edin.";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "AI İlan Oluştur";
+            }
+        }
+    </script>
+</body>
+</html>
