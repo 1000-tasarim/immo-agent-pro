@@ -1,0 +1,166 @@
+🚨 ACIL DEBUG TALİMATLARI
+═════════════════════════════════════════════════════════
+
+DURUM: Git push başarılı ama hâlâ {"status":"running"} görüyorsunuz.
+
+Bu demek ki: Vercel deployment çalışmadı veya hatalı!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 1: VERCEL DEPLOYMENT DURUMUNU KONTROL EDİN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. https://vercel.com/dashboard adresine gidin
+2. "immo-agent-pro-cvqf" projesini seçin
+3. "Deployments" tab'ına tıklayın
+4. En üstteki (en son) deployment'a bakın:
+
+   ✅ Yeşil tick varsa: Deployment başarılı
+   ⏳ Sarı "Building" varsa: Hâlâ build ediliyor (bekleyin)
+   ❌ Kırmızı X varsa: Build hatası var!
+
+5. Deployment'a tıklayın
+6. "Function Logs" veya "Build Logs" kontrol edin
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 2: EN SON DEPLOYMENT ZAMANINI KONTROL EDİN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Git push yaptınız: 31.01.2026 16:27
+Vercel deployment: ??? (kontrol edin!)
+
+Eğer Vercel deployment eski tarihli ise:
+→ Vercel otomatik deploy yapmadı!
+
+ÇÖZÜM: Manuel redeploy yapın:
+1. Vercel Dashboard → Deployments
+2. En üstteki deployment → "..." (3 nokta) → "Redeploy"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 3: BROWSER CACHE TEMİZLEYİN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Eski {"status":"running"} yanıtı cache'de olabilir!
+
+ÇÖZÜM:
+1. CTRL + SHIFT + R (Hard Refresh)
+2. VEYA Gizli sekme açın (CTRL + SHIFT + N)
+3. VEYA DevTools (F12) → Network tab → "Disable cache" işaretle
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 4: DOĞRU URL'LERE GİDİN!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ YANLIŞ: https://immo-agent-pro-cvqf.vercel.app/
+          (Bu root URL - Frontend olmalı!)
+
+✅ DOĞRU TEST URL'LERİ:
+
+1. Frontend Test:
+   https://immo-agent-pro-cvqf.vercel.app/
+   
+   BEKLENEN: 
+   - Form görünmeli
+   - Sağ üstte "System Bereit" badge (yeşil)
+   - ASLA {"status":"running"} görmemelisiniz!
+
+2. API Test:
+   https://immo-agent-pro-cvqf.vercel.app/api/test
+   
+   BEKLENEN:
+   {
+     "status": "ok",
+     "message": "API funktioniert!",
+     "environment": {
+       "has_api_key": true,
+       "llm_initialized": true
+     }
+   }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 5: OLASI DEPLOYMENT HATALARI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vercel Deployment hata veriyorsa şu nedenler olabilir:
+
+❌ "No Python Runtime specified"
+   → vercel.json eksik veya hatalı
+   → Çözüm: vercel.json'u kontrol edin
+
+❌ "Module not found: mangum"
+   → requirements.txt eksik veya hatalı
+   → Çözüm: requirements.txt'yi kontrol edin
+
+❌ "api/index.py not found"
+   → Dosya yanlış yerde
+   → Çözüm: api/index.py olduğundan emin olun
+
+❌ "GOOGLE_API_KEY not set"
+   → Environment variable yok
+   → Çözüm: Vercel Dashboard → Settings → Environment Variables
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 6: .gitignore GÖRÜNMÜYOR SORUNU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Windows'ta .gitignore gizli dosyadır, görmek için:
+
+Yöntem 1 - CMD:
+   dir /a
+
+Yöntem 2 - Explorer:
+   Görünüm → Gizli öğeler (checkbox işaretle)
+
+Yöntem 3 - VS Code:
+   VS Code otomatik gösterir
+
+SORUN: .gitignore yoksa sorun değil!
+       Git otomatik cache'den okuyor
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ADIM 7: HÂLÂ ÇALIŞMIYORSA?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Şu bilgileri alıp gönderin:
+
+1. Vercel Dashboard screenshot:
+   - Deployments listesi
+   - En son deployment detayı
+   - Function Logs
+
+2. Browser DevTools (F12):
+   - Console tab screenshot
+   - Network tab → "/" request → Response
+
+3. CMD'de çalıştırın:
+   cd Y:\Lkhst.DE\SIGNBOXX\Ram\Ajan\immo-agent-pro
+   dir
+   dir api
+   type vercel.json
+   git log --oneline -1
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EN YAKIN İHTİMAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dosya yapısı doğru görünüyor, bu yüzden sorun muhtemelen:
+
+1. ⏳ Vercel hâlâ build ediyor (5-10 dakika sürebilir)
+   → Dashboard'da "Building" yazıyorsa bekleyin
+
+2. 🔄 Browser cache eski yanıtı gösteriyor
+   → CTRL + SHIFT + R yapın veya gizli sekme açın
+
+3. ❌ Vercel deployment hata verdi
+   → Dashboard → Deployments → Logs kontrol edin
+
+4. 🔑 Environment variable yanlış
+   → GOOGLE_API_KEY (doğru isim!) olduğundan emin olun
+
+═════════════════════════════════════════════════════════
+
+BENİ BU BİLGİLERLE GÜNCELLEYİN:
+1. Vercel Deployment durumu? (Building/Success/Failed)
+2. Browser'da CTRL+SHIFT+R yaptınız mı?
+3. /api/test URL'si ne döndürüyor?
+
+Bunları bilince kesin çözüm vereceğim! 🎯
