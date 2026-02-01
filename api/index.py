@@ -32,7 +32,7 @@ def get_llm():
     try:
         import google.generativeai as genai
         genai.configure(api_key=GOOGLE_API_KEY)
-        _llm = genai.GenerativeModel("gemini-pro")
+       _llm = genai.GenerativeModel("models/gemini-1.5-pro-002")
         return _llm
     except Exception as e:
         print(f"ERROR: LLM init failed: {e}")
