@@ -1,36 +1,26 @@
 import os
-import sys
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
-# FastAPI ve Pydantic
-try:
-    from fastapi import FastAPI, HTTPException
-    from pydantic import BaseModel
-except ImportError as e:
-    print(f"ERROR: Failed to import FastAPI/Pydantic: {e}")
-    sys.exit(1)
-
-# FastAPI app
 app = FastAPI()
 
-# Global variables
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global
 _llm = None
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
-# CORS Middleware
-@app.middleware("http")
-async def cors_middleware(request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
-
-# Pydantic model
 class PropertyRequest(BaseModel):
     description: str
     listing_type: str
 
-# Lazy LLM loader
 def get_llm():
     global _llm
     if _llm is not None:
@@ -40,28 +30,18 @@ def get_llm():
         return None
     
     try:
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        _llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-pro",
-            google_api_key=GOOGLE_API_KEY,
-            temperature=0.7
-        )
+        import google.generativeai as genai
+        genai.configure(api_key=GOOGLE_API_KEY)
+        _llm = genai.GenerativeModel("gemini-1.5-pro")
         return _llm
     except Exception as e:
-        print(f"ERROR: LLM initialization failed: {e}")
+        print(f"ERROR: LLM init failed: {e}")
         return None
 
-# Health check endpoints
 @app.get("/")
-def root():
-    return {"status": "ok", "message": "Immo-Agent Pro API"}
-
 @app.get("/api")
-def api_root():
-    return {"status": "ok", "message": "Immo-Agent Pro API"}
-
 @app.get("/api/")
-def api_root_slash():
+def root():
     return {"status": "ok", "message": "Immo-Agent Pro API"}
 
 @app.get("/api/test")
@@ -80,29 +60,16 @@ def test():
 @app.post("/api/generate")
 def generate(request: PropertyRequest):
     try:
-        # Validate API key
         if not GOOGLE_API_KEY:
-            raise HTTPException(
-                status_code=500,
-                detail="GOOGLE_API_KEY nicht konfiguriert"
-            )
+            raise HTTPException(500, "GOOGLE_API_KEY nicht konfiguriert")
         
-        # Validate input
         if not request.description or len(request.description.strip()) < 10:
-            raise HTTPException(
-                status_code=400,
-                detail="Beschreibung muss mindestens 10 Zeichen lang sein"
-            )
+            raise HTTPException(400, "Beschreibung zu kurz (min. 10 Zeichen)")
         
-        # Get LLM
         llm = get_llm()
         if not llm:
-            raise HTTPException(
-                status_code=500,
-                detail="LLM konnte nicht initialisiert werden"
-            )
+            raise HTTPException(500, "LLM konnte nicht initialisiert werden")
         
-        # Generate prompt
         prompt = f"""Du bist ein professioneller deutscher Immobilienmakler.
 
 Erstelle einen PROFESSIONELLEN Immobilien-Anzeigentext auf Deutsch.
@@ -120,15 +87,14 @@ STRUKTUR:
 
 Schreibe auf DEUTSCH, professionell und verkaufsorientiert."""
 
-        # Call LLM
-        print(f"Generating content for: {request.listing_type}")
-        response = llm.invoke(prompt)
-        print("Content generated successfully")
+        print(f"Generating for: {request.listing_type}")
+        response = llm.generate_content(prompt)
+        print("Generated successfully")
         
         return {
             "status": "success",
             "data": {
-                "generated_text": response.content,
+                "generated_text": response.text,
                 "listing_type": request.listing_type
             }
         }
@@ -136,22 +102,13 @@ Schreibe auf DEUTSCH, professionell und verkaufsorientiert."""
     except HTTPException:
         raise
     except Exception as e:
-        error_msg = str(e)
-        print(f"ERROR in generate: {error_msg}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Fehler: {error_msg}"
-        )
+        print(f"ERROR: {str(e)}")
+        raise HTTPException(500, f"Fehler: {str(e)}")
 
-# Vercel handler - CRITICAL!
+# Vercel handler
 try:
     from mangum import Mangum
     handler = Mangum(app, lifespan="off")
-    print("Mangum handler initialized successfully")
-except ImportError as e:
-    print(f"WARNING: Mangum not available: {e}")
-    # Fallback handler for local testing
-    handler = None
 except Exception as e:
-    print(f"ERROR: Mangum initialization failed: {e}")
+    print(f"Mangum error: {e}")
     handler = None
