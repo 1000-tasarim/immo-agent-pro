@@ -104,11 +104,3 @@ Schreibe auf DEUTSCH, professionell und verkaufsorientiert."""
     except Exception as e:
         print(f"ERROR: {str(e)}")
         raise HTTPException(500, f"Fehler: {str(e)}")
-
-# Vercel handler
-try:
-    from mangum import Mangum
-    handler = Mangum(app, lifespan="off")
-except Exception as e:
-    print(f"Mangum error: {e}")
-    handler = None
